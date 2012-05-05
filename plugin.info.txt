@@ -1,0 +1,7 @@
+base     pgnviewerjs
+author   Martyn Eggleton
+email    martyn@access-space.org
+date     2012-05-03
+name     PGN Viewer JS
+desc     renders pgn chess move format
+url      http://www.dokuwiki.org/plugin:pgnviewerjs
