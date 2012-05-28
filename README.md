@@ -11,8 +11,7 @@ Options in a url type style name=val&name2=val2
 The config options are the same as www.chesstempo.com/pgn-usage.html 
 apart from pgnString which is instead entered between the <pgn> and </pgn> tags.
 
-
-'''
+```
 <pgn movesFormat=main_on_own_line&boardName=KvE>
 [Event "Kasparov vs Evgeny"]
 [Site ""]
@@ -33,4 +32,4 @@ g5 27. Nh5 gxh4 28. Qh3 Rg5 29. Nf6+ Kg7 30. f4 Rg6 31. Nhg4 Rh8 32. Nh5+
 Kf8 33. Ngf6 Bc6 34. Qxh4 a3 35. b3 Nb2 36. Kh2 Qc5 37. Re3 d4 38. Rg3 dxc3
 39. Rxg6 fxg6 40. Nd7+ Bxd7 41. Qf6+ 1-0
 </pgn>
-'''
+```
