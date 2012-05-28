@@ -36,7 +36,7 @@ class syntax_plugin_pgnviewerjs extends DokuWiki_Syntax_Plugin {
        
     function connectTo($mode)
     {
-      $this->Lexer->addEntryPattern('<pgn.*?>(?=.*?</pgn>)',$mode,'plugin_pgnviewerjs'); 
+      $this->Lexer->addEntryPattern('<pgn.*?>',$mode,'plugin_pgnviewerjs'); 
     }
     
     function postConnect()
@@ -49,18 +49,23 @@ class syntax_plugin_pgnviewerjs extends DokuWiki_Syntax_Plugin {
      * Handle the match
      */
     function handle($match, $state, $pos, &$handler){
-      #echo "\n<br><pre>\nmatch =" .var_export($match, TRUE)."</pre>";
-      #echo "\n<br><pre>\nstate =" .$state."</pre>";
-      #echo "\n<br><pre>\npos =" .var_export($pos, TRUE)."</pre>";
         switch ($state) {
           case DOKU_LEXER_ENTER :
+              $aDefaults = array(
+                'pieceSet'=> "merida",   
+                'pieceSize'=> 46,
+              );
+              $aBoard = array();
+              parse_str(trim(str_replace(array('<pgn','>'),'',$match)), $aBoard);
+              $this->aBoard = array_merge($aDefaults, $aBoard);
+              
             return array($state, $match);
-                #list($pgn, $background) = preg_split("/\//u", substr($match, 6, -1), 2);
-                ##echo "\n<br><pre>\nmatch =" .var_export($match, TRUE)."</pre>";
-                #return array($state, array($pgn, $background));
-
-          case DOKU_LEXER_UNMATCHED :  return array($state, $match);
-          case DOKU_LEXER_EXIT :       return array($state, '');
+          case DOKU_LEXER_UNMATCHED :
+            $this->aBoard['pgnString'] = str_replace("\n", " ",$match); 
+            
+            return array($state, $this->aBoard);
+          case DOKU_LEXER_EXIT :   
+            return array($state, '');
         }
         return array();
     }
@@ -69,49 +74,61 @@ class syntax_plugin_pgnviewerjs extends DokuWiki_Syntax_Plugin {
      * Create output
      */
     function render($mode, &$renderer, $data) {
-    // $data is what the function handle return'ed.
+        $renderer->nocache();
+
         if($mode == 'xhtml'){
-            list($state,$match) = $data;
-            //echo "\n<br><pre>\ndata =" .var_export($data, TRUE)."</pre>";
+            list($state,$aBoard) = $data;
             switch ($state) {
-              case DOKU_LEXER_ENTER :      
-                $renderer->doc .= '<!-- Support libraries from Yahoo YUI project -->  
-    <script type="text/javascript"  
-        src="http://chesstempo.com/js/pgnyui.js">  
-    </script>   
-    <script type="text/javascript"  
-        src="http://chesstempo.com/js/pgnviewer.js">  
-    </script>  
-    <link  
-     type="text/css"   
-     rel="stylesheet"   
-     href="http://chesstempo.com/css/board-min.css">  
-    </link> <script>  
-new PgnViewer(  
-  {  boardName: "demo",  
-    pieceSet: "leipzig",   
-    pieceSize: 46,  ';
+              case DOKU_LEXER_ENTER :
+                if(!isset($renderer->pgnviewer_board))
+                {
+                  $renderer->doc .= '<!-- Support libraries from Yahoo YUI project -->  
+                  <script type="text/javascript"  
+                      src="http://chesstempo.com/js/pgnyui.js">  
+                  </script>   
+                  <script type="text/javascript"  
+                      src="http://chesstempo.com/js/pgnviewer.js">  
+                  </script>  
+                  <link  
+                   type="text/css"   
+                   rel="stylesheet"   
+                   href="http://chesstempo.com/css/board-min.css">  
+                  </link>';
+                  $renderer->pgnviewer_board = 0;
+                }
+                $renderer->pgnviewer_board ++;
+                
   #render out the json
                 break;
                 
               case DOKU_LEXER_UNMATCHED :  
                 #render the pgnString
-                if($match)
+                
+                if($aBoard)
                 {
-                  $renderer->doc .= "pgnString: '".$renderer->_xmlEntities(str_replace("\n", " ",$match))."'";
+                  if(!isset($aBoard['boardName']))
+                  {
+                    $aBoard['boardName'] = 'pgn_board_'.$renderer->pgnviewer_board;
+                  }
+            
+                  $renderer->doc .= "<script>  new PgnViewer(".json_encode($aBoard)."); </script>";  
+                  $renderer->doc .= '<div class="pgn-viewer">
+                  <div class="pgn-container" id="'.$aBoard['boardName'].'-container"></div>  
+                  <div class="pgn-moves" id="'.$aBoard['boardName'].'-moves"></div>
+                  </div> 
+                  
+                  <div class="pgn-credit">
+                  <a href="http://chesstempo.com">http://chesstempo.com</a>
+                  </div>
+                  <div class="clearer"></div>';    
                 }
                 break;
               case DOKU_LEXER_EXIT :
-                $renderer->doc .= '})</script>
-                <div id="demo-container"></div>  
-    <div id="demo-moves"></div>  '; 
-                //echo "\n<br><pre>\nrenderer->doc  =" .htmlentities($renderer->doc , TRUE)."</pre>";
                 break;
             }
             return true;
         }
         return false;
     }
-    
 }
 ?>

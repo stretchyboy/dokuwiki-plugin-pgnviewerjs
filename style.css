@@ -1,0 +1,18 @@
+.pgn-viewer{
+width:90%
+}
+
+.pgn-container{
+width:45%;
+float:left;
+}
+
+.pgn-moves{
+width:45%;
+float:left;
+}
+
+.pgn-credit{
+ font-size:0.7em;
+ clear:both;
+}
